@@ -132,6 +132,33 @@ export function temperatureOf(hex: string): number {
   return Math.max(-1, Math.min(1, b / (Math.hypot(a, b) + 8)));
 }
 
+/** Plain colour words from Lab values. Lips and cheeks have their own, because a shopper names them differently. */
+export function colourWord(lab: Lab, group: string) {
+  const hue = ((Math.atan2(lab.b, lab.a) * 180) / Math.PI + 360) % 360;
+  const chroma = Math.hypot(lab.a, lab.b);
+  if (group === "eyes") {
+    if (chroma < 8) return lab.L < 35 ? "blacks" : "greys";
+    return lab.L > 65 ? "golds and creams" : lab.L > 40 ? "bronzes" : "browns";
+  }
+  if (group === "face") return lab.L > 75 ? "fair tones" : lab.L > 60 ? "light tones" : lab.L > 45 ? "medium tones" : lab.L > 30 ? "tan tones" : "deep tones";
+  if (chroma < 16 || (lab.L > 62 && chroma < 28)) return lab.L > 55 ? "nudes" : "browns";
+  if (hue > 340 || hue < 8) return lab.L > 58 ? "pinks" : lab.L > 34 ? "roses" : "berries";
+  if (hue < 32) return lab.L > 58 ? "corals" : "reds";
+  if (hue < 60) return lab.L > 55 ? "peaches" : "terracottas";
+  return "nudes";
+}
+
+/** The word for one shade on a rail. Eye products also come in greens, blues and plums. */
+export function shadeWord(lab: Lab, group: string) {
+  const hue = ((Math.atan2(lab.b, lab.a) * 180) / Math.PI + 360) % 360;
+  if (group === "eyes" && Math.hypot(lab.a, lab.b) >= 8) {
+    if (hue >= 100 && hue < 190) return "greens";
+    if (hue >= 190 && hue < 290) return "blues";
+    if (hue >= 290 && hue < 340) return "plums";
+  }
+  return colourWord(lab, group);
+}
+
 function relativeLuminance(hex: string): number {
   const [r, g, b] = hexToRgb(hex).map((v) => {
     const c = v / 255;

@@ -1,3 +1,4 @@
+import attributes from "@/data/attributes.json";
 import catalog from "@/data/catalog.json";
 import features from "@/data/features.json";
 import looks from "@/data/looks.json";
@@ -16,6 +17,8 @@ export type FeedProduct = {
   group: "lips" | "face" | "cheeks" | "eyes";
   image: string;
   summary: string;
+  /** Matte, satin, gloss and so on, which tells two products of the same colour apart. */
+  finish: string | null;
   shades: FeedShade[];
   offers: FeedOffer[];
   priceFrom: number;
@@ -101,7 +104,8 @@ function brandFree(p: FeedProduct): FeedProduct {
 function slim(p: FeedProduct): FeedProduct {
   const coloured = p.shades.filter((s) => s.hex);
   const shades = (coloured.length ? coloured : p.shades).slice(0, MAX_SHADES);
-  const light = { ...p, summary: p.summary.slice(0, 140), shades, photos: photosOf.get(p.id) ?? [], cheaper: cheaperFor(p.id) };
+  const finish = (attributes as Record<string, { finish: string | null }>)[p.id]?.finish ?? null;
+  const light = { ...p, finish, summary: p.summary.slice(0, 140), shades, photos: photosOf.get(p.id) ?? [], cheaper: cheaperFor(p.id) };
   return BRAND_FREE ? brandFree(light) : light;
 }
 

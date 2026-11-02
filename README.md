@@ -547,7 +547,7 @@ GitHub Actions runs two jobs on every push and pull request:
 
 ```mermaid
 flowchart LR
-  Push["Push or pull request"] --> Verify["Lint, types,<br/>33 tests, production build"]
+  Push["Push or pull request"] --> Verify["Lint, types,<br/>34 tests, production build"]
   Push --> Graph["Neo4j 5.26 service,<br/>full graph load"]
 ```
 

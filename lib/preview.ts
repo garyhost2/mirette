@@ -26,7 +26,9 @@ const CHEEK_BONE = [116, 345];
 const CHEEK_HOLLOW = [187, 411];
 
 /** How strongly each kind of product shows. Layer order matters: skin first, lips last. */
-const STRENGTH: Record<string, number> = { foundation: 0.34, concealer: 0.3, powder: 0.14, bronzer: 0.38, blush: 0.42, highlighter: 0.3, eyeshadow: 0.55, eyeliner: 0.8, brow: 0.3, lipstick: 0.74, lip_gloss: 0.5, lip_liner: 0.7 };
+const STRENGTH: Record<string, number> = { foundation: 0.34, concealer: 0.3, powder: 0.14, bronzer: 0.38, blush: 0.42, highlighter: 0.3, eyeshadow: 0.55, eyeliner: 0.8, brow: 0.3, lipstick: 0.74, lip_gloss: 0.42, lip_liner: 0.7 };
+/** How much a gloss lifts the highlights already on the lips, which is what makes it read as wet. */
+const GLOSS_SHINE = 0.42;
 const ORDER = ["foundation", "concealer", "powder", "bronzer", "blush", "highlighter", "eyeshadow", "eyeliner", "brow", "lip_liner", "lipstick", "lip_gloss"];
 
 let detector: Promise<FaceLandmarker> | null = null;
@@ -192,7 +194,7 @@ function maskFor(type: string, points: Point[], width: number, height: number) {
 const luma = (d: Uint8ClampedArray, i: number) => 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
 
 /** Tints one area with the shade while keeping the light and texture of the photo. */
-function applyLayer(pixels: Uint8ClampedArray, mask: Uint8ClampedArray, hex: string, strength: number) {
+function applyLayer(pixels: Uint8ClampedArray, mask: Uint8ClampedArray, hex: string, strength: number, shine = 0) {
   const [r, g, b] = hexToRgb(hex);
   let sum = 0;
   let weight = 0;
@@ -209,10 +211,18 @@ function applyLayer(pixels: Uint8ClampedArray, mask: Uint8ClampedArray, hex: str
   for (let i = 0; i < pixels.length; i += 4) {
     const alpha = (mask[i + 3] / 255) * cover;
     if (alpha <= 0.004) continue;
-    const shading = Math.max(0.55, Math.min(1.45, luma(pixels, i) / mean));
+    // Shine follows the highlights in the photo, so it is measured before the shade goes on.
+    const original = luma(pixels, i) / mean;
+    const shading = Math.max(0.55, Math.min(1.45, original));
     pixels[i] += (r * shading - pixels[i]) * alpha;
     pixels[i + 1] += (g * shading - pixels[i + 1]) * alpha;
     pixels[i + 2] += (b * shading - pixels[i + 2]) * alpha;
+    if (shine) {
+      const gleam = Math.max(0, Math.min(1, (original - 1.15) * 2.4)) * shine * (mask[i + 3] / 255);
+      pixels[i] += (255 - pixels[i]) * gleam;
+      pixels[i + 1] += (255 - pixels[i + 1]) * gleam;
+      pixels[i + 2] += (255 - pixels[i + 2]) * gleam;
+    }
   }
 }
 
@@ -231,7 +241,7 @@ export async function previewLayers(photo: string, layers: Layer[]) {
   const ordered = [...layers].sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type));
   for (const layer of ordered) {
     if (!(layer.type in STRENGTH)) continue;
-    applyLayer(frame.data, maskFor(layer.type, points, canvas.width, canvas.height), layer.hex, STRENGTH[layer.type]);
+    applyLayer(frame.data, maskFor(layer.type, points, canvas.width, canvas.height), layer.hex, STRENGTH[layer.type], layer.type === "lip_gloss" ? GLOSS_SHINE : 0);
   }
   ctx.putImageData(frame, 0, 0);
   return new Promise<string | null>((resolve) => canvas.toBlob((blob) => resolve(blob && URL.createObjectURL(blob)), "image/jpeg", 0.92));

@@ -6,7 +6,7 @@ import { arrowFor, coach, readPose, type Pose } from "./capture";
 import { CREATORS, faceOfCreator, LOOKS, SAMPLE_FACE } from "./creators";
 import { stories } from "./feed";
 import { judgeShade } from "./guide";
-import { deltaE, depthOf, hexToLab, ita, labToHex } from "./color";
+import { deltaE, depthOf, hexToLab, ita, labToHex, shadeWord } from "./color";
 import { fit, type EngineProduct } from "./engine";
 import { traitTags, traitsOf, type Face } from "./face";
 import { kindOfLook, matchLook } from "./match";
@@ -224,4 +224,12 @@ test("every creator story has a scan, scores and products to tap", () => {
     assert.ok(story.scores.every((score) => score.value > 0 && score.value <= 100));
     assert.ok(story.products.length > 0, story.id);
   }
+});
+
+test("the try-on rail names eye shades by what a shopper sees", () => {
+  assert.equal(shadeWord(hexToLab("#2f5fb0"), "eyes"), "blues");
+  assert.equal(shadeWord(hexToLab("#2e7d4f"), "eyes"), "greens");
+  assert.equal(shadeWord(hexToLab("#7a3a8c"), "eyes"), "plums");
+  assert.equal(shadeWord(hexToLab("#5a3a26"), "eyes"), "browns");
+  assert.equal(shadeWord(hexToLab("#c0202c"), "lips"), "reds");
 });

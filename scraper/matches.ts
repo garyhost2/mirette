@@ -5,7 +5,7 @@
 // Run: npm run matches
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { deltaE2000, hexToLab, type Lab } from "../lib/color";
+import { colourWord, deltaE2000, hexToLab, type Lab } from "../lib/color";
 import type { Attributes } from "../lib/suit";
 
 /** Above about 3 two shades start to look different side by side. */
@@ -72,22 +72,6 @@ for (const list of byKind.values()) {
 }
 for (const id of Object.keys(cheaper)) {
   cheaper[id] = cheaper[id].sort((x, y) => x.deltaE - y.deltaE || y.saveEur - x.saveEur).slice(0, PER_PRODUCT);
-}
-
-/** Plain colour words from Lab values. Lips and cheeks have their own, because a shopper names them differently. */
-function colourWord(lab: Lab, group: string) {
-  const hue = ((Math.atan2(lab.b, lab.a) * 180) / Math.PI + 360) % 360;
-  const chroma = Math.hypot(lab.a, lab.b);
-  if (group === "eyes") {
-    if (chroma < 8) return lab.L < 35 ? "blacks" : "greys";
-    return lab.L > 65 ? "golds and creams" : lab.L > 40 ? "bronzes" : "browns";
-  }
-  if (group === "face") return lab.L > 75 ? "fair tones" : lab.L > 60 ? "light tones" : lab.L > 45 ? "medium tones" : lab.L > 30 ? "tan tones" : "deep tones";
-  if (chroma < 16 || (lab.L > 62 && chroma < 28)) return lab.L > 55 ? "nudes" : "browns";
-  if (hue > 340 || hue < 8) return lab.L > 58 ? "pinks" : lab.L > 34 ? "roses" : "berries";
-  if (hue < 32) return lab.L > 58 ? "corals" : "reds";
-  if (hue < 60) return lab.L > 55 ? "peaches" : "terracottas";
-  return "nudes";
 }
 
 const FINISH_WORD: Record<string, string> = { matte: "Matte", gloss: "Glossy", dewy: "Dewy", satin: "Satin", shimmer: "Shimmer" };

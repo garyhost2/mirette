@@ -134,7 +134,7 @@ export async function recommend(face: Face, limit = 40) {
     model: { simulated: SIMULATED_EVENTS, real: (await databaseEventCount()) ?? model.events - SIMULATED_EVENTS },
     traits: traits.map((t) => TRAIT_LABEL[t] ?? t.split(":")[1]),
     needs: needsOf(face, traitsOf(face)),
-    creators: creators.slice(0, 3),
+    creators,
     products: top.map((f) => ({ productId: f.productId, shade: f.shade, hex: f.hex, percent: percent.get(f.productId) ?? 0, reasons: f.reasons.slice(0, 2) })),
   };
 }

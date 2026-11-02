@@ -8,7 +8,7 @@ black water, with its reflection rippling below. The interface is almost nothing
 - Ground: black water `#0b0a08`.
 - Ink: ivory `#f6f1e7`, softer `#cdc6b7` for secondary text.
 - Primary action: a flat ivory button. It turns gold `#cfa84f` when pressed.
-- Gold also marks a saved heart. All other colour comes from the photograph and the real shades.
+- Gold also marks a saved heart and the active tab icon. All other colour comes from the photograph and the real shades.
 
 ## Type
 
@@ -18,8 +18,9 @@ Sentence case everywhere.
 ## Layout
 
 The app is a phone-shaped column of 460px at most, on desktop too. The waterline sits 30% up the
-screen. Words stay on the water, the photo stays clear of them. No cards, borders, shadows, glass,
-icons on tabs or eyebrow labels. Square corners. The logo turns black or ivory to suit each photo.
+screen. Words stay on the water, the photo stays clear of them. No cards, borders, shadows, glass
+or eyebrow labels. Tabs pair a thin icon with a small label. Square corners. The logo turns black or
+ivory to suit each photo.
 
 ## Photographs
 

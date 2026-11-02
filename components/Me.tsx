@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import type { Story } from "@/lib/feed";
 import { euro } from "@/lib/format";
 import { clearFace, toggleSaved, useProfile, useSaved } from "@/lib/profile";
+import { StoryViewer } from "./Stories";
 
 /** The shopper's part of the graph: their traits on the left, what suits them on the right. */
 function Graph({ edges }: { edges: { trait: string; attribute: string; weight: number; products: number }[] }) {
@@ -61,9 +64,10 @@ function Saved() {
   );
 }
 
-export function Me() {
+export function Me({ stories }: { stories: Story[] }) {
   const profile = useProfile();
   const reading = profile?.reading;
+  const [story, setStory] = useState<number | null>(null);
 
   if (!profile) {
     return (
@@ -85,6 +89,14 @@ export function Me() {
       <h1>Your face</h1>
       <p>{reading ? reading.traits.join(", ") : "Reading your scan"}</p>
       {profile.face.source === "device" && <p className="meta">Quick reading made on this device. A full YouCam scan also reads your skin and eyelids.</p>}
+      <div className="actions">
+        <Link href="/" className="btn">
+          See my matches
+        </Link>
+        <Link href="/try-on" className="link">
+          Try on a shade
+        </Link>
+      </div>
       {reading && (
         <>
           <h2>What your face needs</h2>
@@ -101,12 +113,12 @@ export function Me() {
           </p>
           <h2>Closest creators</h2>
           <ol className="closest">
-            {reading.creators.map((c) => (
+            {reading.creators.slice(0, 3).map((c) => (
               <li key={c.creatorId}>
-                <Link href={`/creators#${c.creatorId}`}>
+                <button onClick={() => setStory(stories.findIndex((s) => s.id === c.creatorId))} aria-label={`Open ${c.name}'s story`}>
                   <span>{c.name}</span>
                   <span>{c.score}%</span>
-                </Link>
+                </button>
               </li>
             ))}
           </ol>
@@ -131,6 +143,7 @@ export function Me() {
           Delete my scan
         </button>
       </div>
+      {story !== null && <StoryViewer stories={stories} start={story} onClose={() => setStory(null)} />}
     </div>
   );
 }

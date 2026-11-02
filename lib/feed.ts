@@ -2,7 +2,8 @@ import catalog from "@/data/catalog.json";
 import features from "@/data/features.json";
 import looks from "@/data/looks.json";
 import matches from "@/data/matches.json";
-import { LOOKS, type Look } from "./creators";
+import { creatorOf, faceOfCreator, LOOKS, type Look } from "./creators";
+import { traitsOf } from "./face";
 
 export type FeedShade = { name: string; hex: string | null; image: string | null };
 export type CheaperMatch = { brand: string; title: string; shade: string; forShade: string; hex: string; priceEur: number; saveEur: number; url: string };
@@ -23,6 +24,21 @@ export type FeedProduct = {
   photos: string[];
   /** Other brands' products in a colour the eye can barely tell apart, for less. */
   cheaper: CheaperMatch[];
+};
+
+export type StoryProduct = { id: string; type: string; typeName: string; title: string; image: string; hex: string | null };
+
+/** One creator's story: their scan, their look and the products in it. */
+export type Story = {
+  id: string;
+  name: string;
+  photo: string;
+  lookId: string;
+  lookName: string;
+  lookStory: string;
+  scan: { label: string; value: string }[];
+  scores: { label: string; value: number }[];
+  products: StoryProduct[];
 };
 
 export type FeedItem =
@@ -137,8 +153,42 @@ export function familyItems(id: string): FeedItem[] {
   });
 }
 
-export function lookItems(): Extract<FeedItem, { kind: "look" }>[] {
-  return LOOKS.map((look) => ({ kind: "look", look, products: productsFor(look) }));
+const titleCase = (word: string) => word[0].toUpperCase() + word.slice(1);
+
+export function stories(): Story[] {
+  return LOOKS.map((look) => {
+    const creator = creatorOf(look);
+    const traits = traitsOf(faceOfCreator(creator));
+    return {
+      id: creator.id,
+      name: creator.name,
+      photo: creator.face!,
+      lookId: look.id,
+      lookName: look.name,
+      lookStory: look.story,
+      scan: [
+        { label: "Skin depth", value: titleCase(traits.depth) },
+        { label: "Undertone", value: titleCase(traits.undertone) },
+        { label: "Contrast", value: traits.contrast >= 40 ? "High" : traits.contrast < 25 ? "Soft" : "Medium" },
+        { label: "Eyelids", value: creator.shape.eyelid.replace("-lid", "") },
+        { label: "Lips", value: creator.shape.lipShape },
+        { label: "Face", value: creator.shape.faceShape },
+      ],
+      scores: [
+        { label: "Hydration", value: creator.skin.moisture },
+        { label: "Radiance", value: creator.skin.radiance },
+        { label: "Texture", value: creator.skin.texture },
+      ],
+      products: productsFor(look).map((p) => ({
+        id: p.id,
+        type: p.type,
+        typeName: TYPE_NAME[p.type] ?? "Makeup",
+        title: p.title,
+        image: p.image,
+        hex: p.type === look.signature.type ? look.signature.hex : (p.shades.find((s) => s.hex)?.hex ?? null),
+      })),
+    };
+  });
 }
 
 export function findProduct(id: string): FeedProduct | undefined {

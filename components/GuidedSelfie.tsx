@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { basin } from "@/lib/basin";
-import { coach, readPose, STEPS } from "@/lib/capture";
+import { arrowFor, coach, readPose, STEPS, type Direction, type Point } from "@/lib/capture";
 import { detectInVideo } from "@/lib/preview";
-import { CloseIcon } from "./icons";
+import { CloseIcon, DirectionIcon } from "./icons";
 
 const HOLD_MS = 750;
 const LOOK_EVERY_MS = 110;
@@ -27,12 +27,35 @@ function grabFrame(video: HTMLVideoElement, name: string) {
   return new Promise<File | null>((resolve) => canvas.toBlob((blob) => resolve(blob && new File([blob], name, { type: "image/jpeg" })), "image/jpeg", 0.92));
 }
 
+/** Draws MediaPipe's face landmarks over the video, matching its cover crop, so the tracking is visible. */
+function drawMesh(canvas: HTMLCanvasElement, video: HTMLVideoElement, points: Point[] | null) {
+  const { clientWidth: width, clientHeight: height } = canvas;
+  const density = Math.min(2, window.devicePixelRatio);
+  if (canvas.width !== Math.round(width * density)) {
+    canvas.width = Math.round(width * density);
+    canvas.height = Math.round(height * density);
+  }
+  const context = canvas.getContext("2d")!;
+  context.setTransform(density, 0, 0, density, 0, 0);
+  context.clearRect(0, 0, width, height);
+  if (!points) return;
+  const scale = Math.max(width / video.videoWidth, height / video.videoHeight);
+  const left = (width - video.videoWidth * scale) / 2;
+  const top = (height - video.videoHeight * scale) / 2;
+  context.fillStyle = "rgba(207, 168, 79, 0.95)";
+  for (let i = 0; i < points.length; i += 2) {
+    context.fillRect(left + points[i].x * video.videoWidth * scale - 1.1, top + points[i].y * video.videoHeight * scale - 1.1, 2.2, 2.2);
+  }
+}
+
 /** Takes one photo from the front and one from each side, each by itself once the face is in position. */
 export function GuidedSelfie({ onDone, onUpload, onClose }: { onDone: (frames: File[]) => void; onUpload: () => void; onClose: () => void }) {
   const video = useRef<HTMLVideoElement>(null);
+  const mesh = useRef<HTMLCanvasElement>(null);
   const takeNow = useRef<() => void>(() => {});
   const [step, setStep] = useState(0);
   const [hint, setHint] = useState("Starting the camera");
+  const [arrow, setArrow] = useState<Direction | null>(null);
   const [hold, setHold] = useState(0);
   const [stuck, setStuck] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -88,8 +111,11 @@ export function GuidedSelfie({ onDone, onUpload, onClose }: { onDone: (frames: F
       lastLook = now;
       const points = await detectInVideo(el, now);
       if (stopped || taking) return;
-      const advice = coach(STEPS[index].id, points ? readPose(points) : null, frameBrightness(el, probe));
+      if (mesh.current) drawMesh(mesh.current, el, points);
+      const pose = points ? readPose(points) : null;
+      const advice = coach(STEPS[index].id, pose, frameBrightness(el, probe));
       setHint(advice ?? "Hold still");
+      setArrow(advice ? arrowFor(STEPS[index].id, pose) : null);
       if (now - stepSince > STUCK_MS) setStuck(true);
       if (advice) {
         heldSince = 0;
@@ -107,6 +133,7 @@ export function GuidedSelfie({ onDone, onUpload, onClose }: { onDone: (frames: F
         if (stopped || !video.current) return stop();
         video.current.srcObject = stream;
         await video.current.play();
+        setHint("Loading the face tracker");
         await detectInVideo(video.current, performance.now());
         stepSince = performance.now();
         frame = requestAnimationFrame(look);
@@ -122,16 +149,15 @@ export function GuidedSelfie({ onDone, onUpload, onClose }: { onDone: (frames: F
   return (
     <section className="guide" aria-label="Guided selfie">
       <video ref={video} playsInline muted />
+      <canvas ref={mesh} className="guide-mesh" aria-hidden="true" />
       <div className="guide-oval" aria-hidden="true">
         <svg viewBox="0 0 300 400">
           <ellipse cx="150" cy="200" rx="147" ry="197" className="track" />
           <ellipse cx="150" cy="200" rx="147" ry="197" className="held" pathLength={1} strokeDasharray="1" strokeDashoffset={1 - hold} />
         </svg>
-        {current.id !== "front" && !failed && (
-          <span className={`guide-arrow ${current.id}`}>
-            <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" strokeWidth="1.2">
-              <path d="M15 4 7 12l8 8" />
-            </svg>
+        {arrow && !failed && (
+          <span className="guide-arrow" data-direction={arrow}>
+            <DirectionIcon direction={arrow} />
           </span>
         )}
       </div>

@@ -7,7 +7,8 @@ import type { CSSProperties } from "react";
 import { basin } from "@/lib/basin";
 import type { FeedProduct } from "@/lib/feed";
 import { lightIsUneven, prepareSelfie, previewLayers, readFaceOnDevice, type Layer } from "@/lib/preview";
-import { setFace, track, useProfile } from "@/lib/profile";
+import { setFace, toggleSaved, track, useProfile, useSaved } from "@/lib/profile";
+import { ProductSheet } from "./Feed";
 import { GuidedSelfie } from "./GuidedSelfie";
 
 const GROUPS = [
@@ -32,6 +33,7 @@ export function TryOn({ products, startId, lookId, samples }: { products: FeedPr
   const [guided, setGuided] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [buying, setBuying] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const appliedLook = useRef(false);
   const latest = useRef(0);
@@ -48,6 +50,7 @@ export function TryOn({ products, startId, lookId, samples }: { products: FeedPr
   // The engine's best shade leads until the shopper chooses their own.
   const best = product?.shades.find((s) => s.name === fit?.shade)?.name;
   const shade = picked ?? best ?? product?.shades[0]?.name;
+  const saved = useSaved().some((s) => s.id === product?.id);
 
   useEffect(() => {
     basin.open(photo ?? samples[0].photo);
@@ -278,6 +281,17 @@ export function TryOn({ products, startId, lookId, samples }: { products: FeedPr
             </div>
           )}
           <p className="meta">{busy ? "Applying the shade" : (note ?? "Pick a shade to try it on.")}</p>
+          {product && (
+            <div className="actions">
+              <button className="btn" onClick={() => setBuying(true)}>
+                Buy this shade
+              </button>
+              <button className="link" aria-pressed={saved} onClick={() => toggleSaved({ id: product.id, title: product.title, brand: product.brand, image: product.photos[0] ?? product.image, priceFrom: product.priceFrom })}>
+                {saved ? "Saved" : "Save"}
+              </button>
+            </div>
+          )}
+          {buying && product && <ProductSheet product={product} shade={shade ?? ""} onClose={() => setBuying(false)} canTry={false} />}
         </section>
       )}
     </div>

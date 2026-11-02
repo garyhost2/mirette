@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 import { WaterScene } from "@/components/Water";
@@ -35,6 +36,14 @@ export default async function LookPage({ params }: { params: Promise<{ id: strin
           </li>
         ))}
       </ul>
+      <div className="actions">
+        <Link href={`/try-on?look=${id}`} className="btn">
+          Try this look
+        </Link>
+        <Link href="/" className="link">
+          Back to Discover
+        </Link>
+      </div>
     </div>
   );
 }

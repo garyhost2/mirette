@@ -1,6 +1,6 @@
-# Mirette
-
-**Copy the look, not the lipstick.**
+<p align="center">
+  <img src="docs/assets/banner.png" alt="Mirette. Copy the look, not the lipstick." width="100%">
+</p>
 
 Mirette is a phone-first makeup website. It reads your face with the YouCam API, predicts how each shade will look on your skin, and rebuilds a creator's look from real products that work on you. A Neo4j graph connects face traits, product attributes, colours, sellers and looks, and a model learns from what shoppers do.
 
@@ -10,6 +10,7 @@ Built for the [YouCam API Skin AI & eCommerce VTO Hackathon](https://youcam-api-
 
 ## Contents
 
+- [The app](#the-app)
 - [What it does](#what-it-does)
 - [Architecture](#architecture)
 - [The Neo4j product graph](#the-neo4j-product-graph)
@@ -26,16 +27,47 @@ Built for the [YouCam API Skin AI & eCommerce VTO Hackathon](https://youcam-api-
 - [Project layout](#project-layout)
 - [Limits](#limits)
 
+## The app
+
+<table>
+  <tr>
+    <td width="25%"><img src="docs/assets/screens/discover.jpg" alt="Discover with creator stories at the top"></td>
+    <td width="25%"><img src="docs/assets/screens/story-scan.jpg" alt="A creator story showing their scan and scores"></td>
+    <td width="25%"><img src="docs/assets/screens/story-match.jpg" alt="A creator story showing the shopper's match"></td>
+    <td width="25%"><img src="docs/assets/screens/story-shade.jpg" alt="The shopper's own shade of a creator's product"></td>
+  </tr>
+  <tr>
+    <td align="center">Discover and stories</td>
+    <td align="center">A creator's scan</td>
+    <td align="center">Your match</td>
+    <td align="center">Your shade</td>
+  </tr>
+  <tr>
+    <td width="25%"><img src="docs/assets/screens/selfie.jpg" alt="Guided selfie with a face mesh and a direction arrow"></td>
+    <td width="25%"><img src="docs/assets/screens/try-on.jpg" alt="Try on with an instant preview"></td>
+    <td width="25%"><img src="docs/assets/screens/look.jpg" alt="One look rebuilt for four faces"></td>
+    <td width="25%"><img src="docs/assets/screens/me.jpg" alt="The shopper's own guide"></td>
+  </tr>
+  <tr>
+    <td align="center">Guided selfie</td>
+    <td align="center">Try on</td>
+    <td align="center">Look translation</td>
+    <td align="center">Your guide</td>
+  </tr>
+</table>
+
+These screens come from the brand-free build. Every face is AI-made and labelled as a sample.
+
 ## What it does
 
 | Feature | What the shopper gets |
 |---|---|
-| Guided selfie | Front, left and right photos taken automatically, with live coaching on pose and light |
+| Guided selfie | Front, left and right photos taken automatically, with a live face mesh, a large arrow for each move, and coaching on pose and light |
 | Face reading | Skin, lip, eye, brow and hair colours, skin condition and face shape, turned into a guide to what this face needs |
 | Fit | A best shade, score and plain reason for every product |
 | Try-on | Shades and whole looks on your own face: an instant preview, then the YouCam render |
 | Look translation | A creator's look rebuilt from real shades for your skin |
-| Creator match | The closest creators for each kind of look, with the reason |
+| Creator stories | Story circles on Discover. Each opens a creator's scan and scores, your match with them and their products, and tapping a product gives your own shade |
 | Shopping | Seller comparison, a near-identical colour for less, and a count of foundation shades that really reach your skin |
 
 Mirette scores how a product fits a face. It never scores the face.
@@ -45,7 +77,7 @@ Mirette scores how a product fits a face. It never scores the face.
 ```mermaid
 flowchart TB
   subgraph Phone["Phone browser"]
-    UI["Next.js client<br/>Discover, Try on, Creators, Me"]
+    UI["Next.js client<br/>Discover, stories, Try on, Me"]
     Selfie["Guided selfie<br/>MediaPipe Face Landmarker"]
     Preview["On-device preview<br/>Canvas masks per product"]
     Water["WebGL2 water surface"]
@@ -174,6 +206,10 @@ graph LR
 | `MADE` | 4 | A sample creator made a look |
 
 That is 1,098 nodes and 3,493 relationships. `NEEDS` grows as real actions connect new trait and attribute pairs.
+
+![The Mirette graph, read from Neo4j. Each product is drawn in its own shade colour.](docs/assets/graph.png)
+
+This is the real graph, read from the database. Each product dot is drawn in its own shade colour, gold lines are `NEEDS` links, and hubs are attributes, sellers and colour families.
 
 The trait nodes hold categories such as `oily`, `hooded` and `depth:deep`. No shopper, face or photo enters the graph.
 
@@ -459,7 +495,7 @@ The selfie guide reads face landmarks 9 times a second and estimates head turn:
 \mathrm{yaw} = \frac{x_{\mathrm{nose}} - \frac{1}{2}(x_{\mathrm{left}} + x_{\mathrm{right}})}{\left| x_{\mathrm{right}} - x_{\mathrm{left}} \right|}
 ```
 
-A photo is taken once the pose holds for 750 ms. The rules in `lib/capture.ts` are pure functions, so they have unit tests. Side photos stay on the device, where they flag uneven light when a reading differs from the front by more than a CIEDE2000 of 9.
+MediaPipe's landmarks are drawn over the video as a gold mesh, so the tracking is visible. A large arrow shows the next move: turn, shift, come closer or step back. A photo is taken once the pose holds for 750 ms. The rules in `lib/capture.ts` are pure functions, so they have unit tests. Side photos stay on the device, where they flag uneven light when a reading differs from the front by more than a CIEDE2000 of 9.
 
 The preview in `lib/preview.ts` builds a mask for each product from the landmarks and blends the shade in place, keeping the skin's own shading. It appears instantly and costs no units.
 
@@ -511,7 +547,7 @@ GitHub Actions runs two jobs on every push and pull request:
 
 ```mermaid
 flowchart LR
-  Push["Push or pull request"] --> Verify["Lint, types,<br/>29 tests, production build"]
+  Push["Push or pull request"] --> Verify["Lint, types,<br/>33 tests, production build"]
   Push --> Graph["Neo4j 5.26 service,<br/>full graph load"]
 ```
 
@@ -613,7 +649,7 @@ To rebuild the catalog, run `node scraper/scrape.mjs`, then `normalize.mjs`, `sh
 ```text
 app/                 Pages and API routes
   api/               scan, try-on, recommend, events
-components/          Feed, try-on, guided selfie, Me, water
+components/          Feed, creator stories, try-on, guided selfie, Me, water
 lib/
   color.ts           CIELAB, CIEDE2000, ITA
   suit.ts            Optical and physical fit, coverage model
@@ -652,3 +688,7 @@ Further reading: [how Mirette decides what suits a face](docs/MATCHING.md), [the
 ## License
 
 [MIT](LICENSE)
+
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="Mirette" width="72">
+</p>

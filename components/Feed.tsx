@@ -28,7 +28,32 @@ function useActive(ref: RefObject<HTMLElement | null>) {
   return on;
 }
 
-function ProductSheet({ product, shade, onClose }: { product: FeedProduct; shade: string; onClose: () => void }) {
+/** The opening's main action: a scan first, then the shopper's own results. */
+export function ScanAction({ done, more }: { done: string; more?: ReactNode }) {
+  const profile = useProfile();
+  return (
+    <div className="actions">
+      {profile ? (
+        <button
+          className="btn"
+          onClick={(e) => {
+            const feed = e.currentTarget.closest(".feed");
+            feed?.scrollTo({ top: feed.clientHeight, behavior: "smooth" });
+          }}
+        >
+          {done}
+        </button>
+      ) : (
+        <Link href="/try-on" className="btn">
+          Scan my face
+        </Link>
+      )}
+      {more}
+    </div>
+  );
+}
+
+export function ProductSheet({ product, shade, onClose, canTry = true }: { product: FeedProduct; shade: string; onClose: () => void; canTry?: boolean }) {
   return (
     <dialog
       className="sheet"
@@ -54,6 +79,13 @@ function ProductSheet({ product, shade, onClose }: { product: FeedProduct; shade
         {product.brand}
         {shade && ` · ${shade}`}
       </p>
+      {canTry && (
+        <div className="actions">
+          <Link className="btn" href={`/try-on?product=${encodeURIComponent(product.id)}`} onClick={() => track("tryon", product.id)}>
+            Try this shade
+          </Link>
+        </div>
+      )}
       <ul>
         {product.offers.map((o) => (
           <li key={o.seller}>
@@ -166,6 +198,11 @@ function ProductCard({ product, onPhoto }: { product: FeedProduct; onPhoto: (url
             {fit.percent}% for you{(fit.reason ?? fit.warning) && ` · ${fit.reason ?? fit.warning}`}
           </p>
         )}
+        {!profile && (
+          <Link className="fit" href="/try-on">
+            See how this suits your face
+          </Link>
+        )}
         <div className="row">
           <div className="rail" ref={rail} aria-label="Choose a shade">
             {pages.map((p, i) =>
@@ -213,7 +250,8 @@ function LookCard({ item }: { item: Extract<FeedItem, { kind: "look" }> }) {
   const creator = creatorOf(look);
   const card = useRef<HTMLElement>(null);
   const on = useActive(card);
-  const reading = useProfile()?.reading;
+  const profile = useProfile();
+  const reading = profile?.reading;
   const match = reading?.creators.find((c) => c.creatorId === creator.id);
   const yours = reading?.translations[look.id];
   const tiles = yours?.length ? yours : products.map((p) => ({ productId: p.id, type: p.type, title: p.title, image: p.image, shade: null, hex: "", url: p.offers[0].url }));
@@ -232,6 +270,11 @@ function LookCard({ item }: { item: Extract<FeedItem, { kind: "look" }> }) {
           <p className="fit">
             {match.score}% match · {match.reasons[0]}
           </p>
+        )}
+        {!profile && (
+          <Link className="fit" href="/try-on">
+            See your match with {creator.name}
+          </Link>
         )}
         <div className="tiles" aria-label={`Products in ${look.name}`}>
           {tiles.map((p) => (

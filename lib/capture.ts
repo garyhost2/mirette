@@ -23,10 +23,12 @@ const LEVEL_NOSE = 0.42;
 const MAX_TILT = 0.16;
 const MIN_FACE = 0.34;
 const MAX_FACE = 0.9;
+const MAX_OFFSET = 0.2;
 const MIN_LIGHT = 55;
 const MAX_LIGHT = 235;
 
-export type Pose = { yaw: number; tilt: number; size: number; offset: number };
+export type Pose = { yaw: number; tilt: number; size: number; offset: number; shiftX: number; shiftY: number };
+export type Direction = "left" | "right" | "up" | "down" | "closer" | "further";
 
 /** Yaw is positive when the shopper turns to their own left, which moves the nose right in the raw image. */
 export function readPose(points: Point[]): Pose {
@@ -36,11 +38,15 @@ export function readPose(points: Point[]): Pose {
   const middle = (a.x + b.x) / 2;
   const width = Math.max(0.001, Math.abs(b.x - a.x));
   const height = Math.max(0.001, points[CHIN].y - points[FOREHEAD].y);
+  const shiftX = middle - 0.5;
+  const shiftY = (points[FOREHEAD].y + points[CHIN].y) / 2 - 0.46;
   return {
     yaw: (points[NOSE].x - middle) / width,
     tilt: (points[NOSE].y - eyeY) / Math.max(0.001, points[CHIN].y - eyeY) - LEVEL_NOSE,
     size: height,
-    offset: Math.hypot(middle - 0.5, (points[FOREHEAD].y + points[CHIN].y) / 2 - 0.46),
+    offset: Math.hypot(shiftX, shiftY),
+    shiftX,
+    shiftY,
   };
 }
 
@@ -51,10 +57,30 @@ export function coach(step: StepId, pose: Pose | null, light: number) {
   if (light > MAX_LIGHT) return "Too bright. Move out of direct light";
   if (pose.size < MIN_FACE) return "Move a little closer";
   if (pose.size > MAX_FACE) return "Move a little further away";
-  if (pose.offset > 0.2) return "Centre your face in the oval";
+  if (pose.offset > MAX_OFFSET) return "Centre your face in the oval";
   if (Math.abs(pose.tilt) > MAX_TILT) return "Keep your chin level";
   if (step === "front" && Math.abs(pose.yaw) > TURNED * 0.7) return "Look straight at the camera";
   if (step === "left" && pose.yaw < TURNED) return "A little further left";
   if (step === "right" && pose.yaw > -TURNED) return "A little further right";
+  return null;
+}
+
+/**
+ * Which way the arrow points, in the mirrored view the shopper sees. It follows the same order as
+ * coach, so the arrow and the words always agree. A face on the right of the raw image sits on the
+ * left of the mirror, so that shopper moves right.
+ */
+export function arrowFor(step: StepId, pose: Pose | null): Direction | null {
+  if (!pose) return null;
+  if (pose.size < MIN_FACE) return "closer";
+  if (pose.size > MAX_FACE) return "further";
+  if (pose.offset > MAX_OFFSET) {
+    if (Math.abs(pose.shiftX) > Math.abs(pose.shiftY)) return pose.shiftX > 0 ? "right" : "left";
+    return pose.shiftY > 0 ? "up" : "down";
+  }
+  if (Math.abs(pose.tilt) > MAX_TILT) return pose.tilt > 0 ? "up" : "down";
+  if (step === "front" && Math.abs(pose.yaw) > TURNED * 0.7) return pose.yaw > 0 ? "right" : "left";
+  if (step === "left" && pose.yaw < TURNED) return "left";
+  if (step === "right" && pose.yaw > -TURNED) return "right";
   return null;
 }

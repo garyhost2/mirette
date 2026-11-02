@@ -2,8 +2,9 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { coach, readPose } from "./capture";
-import { CREATORS, faceOfCreator, SAMPLE_FACE } from "./creators";
+import { arrowFor, coach, readPose, type Pose } from "./capture";
+import { CREATORS, faceOfCreator, LOOKS, SAMPLE_FACE } from "./creators";
+import { stories } from "./feed";
 import { judgeShade } from "./guide";
 import { deltaE, depthOf, hexToLab, ita, labToHex } from "./color";
 import { fit, type EngineProduct } from "./engine";
@@ -190,4 +191,37 @@ test("the guide coaches light and distance before anything else", () => {
   assert.match(coach("front", front, 250)!, /bright/);
   assert.match(coach("front", readPose(facePoints(0, 0.2)), 120)!, /closer/);
   assert.match(coach("front", null, 120)!, /oval/);
+});
+
+const level: Pose = { yaw: 0, tilt: 0, size: 0.5, offset: 0, shiftX: 0, shiftY: 0 };
+
+test("the arrow points where the shopper should turn", () => {
+  assert.equal(arrowFor("front", level), null);
+  assert.equal(arrowFor("left", level), "left");
+  assert.equal(arrowFor("right", level), "right");
+  assert.equal(arrowFor("left", { ...level, yaw: 0.2 }), null);
+  assert.equal(arrowFor("front", { ...level, yaw: 0.2 }), "right");
+});
+
+test("the arrow brings a face back to the middle of the mirrored view", () => {
+  assert.equal(arrowFor("front", { ...level, offset: 0.3, shiftX: 0.3 }), "right");
+  assert.equal(arrowFor("front", { ...level, offset: 0.3, shiftX: -0.3 }), "left");
+  assert.equal(arrowFor("front", { ...level, offset: 0.3, shiftY: 0.3 }), "up");
+  assert.equal(arrowFor("front", { ...level, offset: 0.3, shiftY: -0.3 }), "down");
+});
+
+test("distance comes first, and no face means no arrow", () => {
+  assert.equal(arrowFor("left", { ...level, size: 0.2 }), "closer");
+  assert.equal(arrowFor("left", { ...level, size: 0.95 }), "further");
+  assert.equal(arrowFor("left", null), null);
+});
+
+test("every creator story has a scan, scores and products to tap", () => {
+  const list = stories();
+  assert.equal(list.length, LOOKS.length);
+  for (const story of list) {
+    assert.equal(story.scan.length, 6);
+    assert.ok(story.scores.every((score) => score.value > 0 && score.value <= 100));
+    assert.ok(story.products.length > 0, story.id);
+  }
 });

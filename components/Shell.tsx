@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { EyeMark, PersonIcon } from "./icons";
+import { DiscoverIcon, EyeMark, PersonIcon, TryOnIcon } from "./icons";
 import { Water } from "./Water";
 
 const TABS = [
-  { href: "/", label: "Discover" },
-  { href: "/try-on", label: "Try on" },
-  { href: "/creators", label: "Creators" },
+  { href: "/", label: "Discover", Icon: DiscoverIcon },
+  { href: "/try-on", label: "Try on", Icon: TryOnIcon },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -30,7 +29,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <nav className="tabs" aria-label="Main">
         {TABS.map((t) => (
           <Link key={t.href} href={t.href} className="tab" aria-current={path === t.href ? "page" : undefined}>
-            {t.label}
+            <t.Icon />
+            <span>{t.label}</span>
           </Link>
         ))}
       </nav>

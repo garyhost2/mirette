@@ -1,0 +1,55 @@
+{
+  "note": "Foundation and concealer shades within ΔE 4 of a reference skin. Colours are estimated from images.",
+  "products": 42,
+  "shades": 832,
+  "bands": [
+    {
+      "band": "Very light",
+      "ita": 78,
+      "shades": 10,
+      "shareOfShades": 1.2,
+      "products": 5,
+      "shareOfProducts": 11.9
+    },
+    {
+      "band": "Light",
+      "ita": 59,
+      "shades": 79,
+      "shareOfShades": 9.5,
+      "products": 19,
+      "shareOfProducts": 45.2
+    },
+    {
+      "band": "Intermediate",
+      "ita": 37,
+      "shades": 64,
+      "shareOfShades": 7.7,
+      "products": 22,
+      "shareOfProducts": 52.4
+    },
+    {
+      "band": "Tan",
+      "ita": 16,
+      "shades": 32,
+      "shareOfShades": 3.8,
+      "products": 10,
+      "shareOfProducts": 23.8
+    },
+    {
+      "band": "Brown",
+      "ita": -25,
+      "shades": 21,
+      "shareOfShades": 2.5,
+      "products": 11,
+      "shareOfProducts": 26.2
+    },
+    {
+      "band": "Dark",
+      "ita": -64,
+      "shades": 12,
+      "shareOfShades": 1.4,
+      "products": 8,
+      "shareOfProducts": 19
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "mirette",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A phone-first makeup website: face reading with the YouCam API, a Neo4j product graph and a model that learns from behaviour.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint app components lib scraper next.config.ts",
+    "test": "node --import tsx --test lib/*.test.ts",
+    "simulate": "tsx scraper/simulate.ts",
+    "graph": "tsx --env-file-if-exists=.env.local scraper/load-graph.mts",
+    "looks": "tsx --env-file-if-exists=.env.local scraper/generate-looks.mts",
+    "matches": "tsx scraper/matches.ts",
+    "equity": "tsx scraper/equity.ts",
+    "predev": "node scraper/copy-wasm.mjs",
+    "prebuild": "node scraper/copy-wasm.mjs",
+    "typecheck": "next typegen && tsc --noEmit",
+    "check": "npm run lint && npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.2.0",
+    "neo4j-driver": "^6.3.0",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

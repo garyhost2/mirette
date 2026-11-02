@@ -1,0 +1,120 @@
+{
+  "note": "Simulated shoppers with hidden tastes. Shows the engine learns, not that its advice is right.",
+  "shoppers": 900,
+  "events": 10800,
+  "likedInTopTen": {
+    "random": 0.237,
+    "rules": 0.385,
+    "learned": 0.482
+  },
+  "history": [
+    {
+      "shoppers": 150,
+      "liked": 0.458
+    },
+    {
+      "shoppers": 300,
+      "liked": 0.465
+    },
+    {
+      "shoppers": 450,
+      "liked": 0.466
+    },
+    {
+      "shoppers": 600,
+      "liked": 0.477
+    },
+    {
+      "shoppers": 750,
+      "liked": 0.475
+    },
+    {
+      "shoppers": 900,
+      "liked": 0.482
+    }
+  ],
+  "fairness": [
+    {
+      "depth": "fair",
+      "shoppersTested": 63,
+      "rules": 0.401,
+      "learned": 0.502
+    },
+    {
+      "depth": "light",
+      "shoppersTested": 44,
+      "rules": 0.381,
+      "learned": 0.48
+    },
+    {
+      "depth": "tan",
+      "shoppersTested": 33,
+      "rules": 0.375,
+      "learned": 0.481
+    },
+    {
+      "depth": "medium",
+      "shoppersTested": 32,
+      "rules": 0.386,
+      "learned": 0.474
+    },
+    {
+      "depth": "deep",
+      "shoppersTested": 28,
+      "rules": 0.365,
+      "learned": 0.452
+    }
+  ],
+  "strongest": [
+    {
+      "trait": "thin-lips",
+      "attribute": "finish:gloss",
+      "weight": 0.71
+    },
+    {
+      "trait": "oily",
+      "attribute": "finish:matte",
+      "weight": 0.7
+    },
+    {
+      "trait": "hooded",
+      "attribute": "claim:waterproof",
+      "weight": 0.68
+    },
+    {
+      "trait": "dry",
+      "attribute": "claim:hydrating",
+      "weight": 0.63
+    },
+    {
+      "trait": "dry",
+      "attribute": "finish:dewy",
+      "weight": 0.62
+    },
+    {
+      "trait": "dry",
+      "attribute": "finish:matte",
+      "weight": -0.56
+    },
+    {
+      "trait": "oily",
+      "attribute": "finish:dewy",
+      "weight": -0.52
+    },
+    {
+      "trait": "textured",
+      "attribute": "claim:blurring",
+      "weight": 0.5
+    },
+    {
+      "trait": "depth:fair",
+      "attribute": "finish:gloss",
+      "weight": 0.3
+    },
+    {
+      "trait": "redness",
+      "attribute": "coverage:medium",
+      "weight": -0.25
+    }
+  ]
+}

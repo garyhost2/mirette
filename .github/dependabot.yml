@@ -1,10 +1,13 @@
+# Security updates only. Version upgrades are planned by hand, so a major bump never arrives unasked.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 0
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 0

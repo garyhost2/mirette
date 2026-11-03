@@ -8,6 +8,8 @@ The name comes from the French *se mirer*, to see yourself in water, so every sc
 
 Built for the [YouCam API Skin AI & eCommerce VTO Hackathon](https://youcam-api-skin-ai-ecommerce.devpost.com/).
 
+**Live demo: [mirette.vercel.app](https://mirette.vercel.app)**. Open it on a phone. It is the brand-free build, and it runs without a YouCam key, so Try on shows the on-device preview.
+
 ## Contents
 
 - [The app](#the-app)
@@ -619,6 +621,14 @@ npm run graph
 ```
 
 Neo4j Browser is at http://localhost:7474. For Neo4j Aura, set `NEO4J_URI` to its `neo4j+s://` address and run `npm run graph` once.
+
+### Deploy
+
+The live demo runs on Vercel, built with `BRAND_FREE=1`. With no `NEO4J_URI` it uses the built-in graph, which gives the same results as the database.
+
+```bash
+vercel deploy --prod --build-env BRAND_FREE=1 --env BRAND_FREE=1
+```
 
 ### Environment
 
